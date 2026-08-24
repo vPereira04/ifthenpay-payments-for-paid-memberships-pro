@@ -1,0 +1,58 @@
+/**
+ * Minimal, additive styles for the ifthenpay settings screen.
+ *
+ * Deliberately small: every layout primitive (.form-table, .pmpro_section,
+ * .wp-list-table.widefat.striped, dashicons) is reused as-is from Paid
+ * Memberships Pro core (adminpages/paymentsettings.php,
+ * classes/gateways/class.pmprogateway_check.php). These rules only cover
+ * the handful of details PMPro's own markup has no equivalent for: method
+ * logos in the payment-methods table, the disabled/unprovisioned row
+ * state, and the Backoffice Key connect/connected status line.
+ */
+
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__method {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+/*
+ * height fixed, width auto: ifthenpay's method logos are not all the same
+ * native aspect ratio (the card-network mark is wider than the square
+ * MB/MBWAY marks), so a hardcoded width (as this used to have) stretched
+ * some of them out of proportion relative to the others. Fixing only the
+ * height keeps every logo visually the same scale without distorting any
+ * of them.
+ */
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__logo {
+	height: 24px;
+	width: auto;
+	border-radius: 2px;
+}
+
+.iftp-pmpro-methods-table .iftp-pmpro-method-row--disabled {
+	opacity: 0.6;
+}
+
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__status {
+	display: inline-block;
+	margin-right: 8px;
+	font-style: italic;
+	color: #646970;
+}
+
+.iftp-pmpro-backoffice-connect,
+.iftp-pmpro-backoffice-connected {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.iftp-pmpro-backoffice-connected .dashicons-yes-alt {
+	color: #46b450;
+}
+
+.iftp-pmpro-runtime-warning {
+	margin: 4px 0 0;
+	color: #d63638;
+}

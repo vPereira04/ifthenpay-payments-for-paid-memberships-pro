@@ -1,0 +1,17 @@
+{
+    "name": "ifthenpay/ifthenpay-payments-for-paid-memberships-pro",
+    "description": "ifthenpay Pay by Link integration for Paid Memberships Pro",
+    "type": "wordpress-plugin",
+    "license": "GPL-3.0-or-later",
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ifthenpay\\PaidMembershipsPro\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
