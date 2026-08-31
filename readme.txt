@@ -4,7 +4,7 @@ Tags: ifthenpay, paid memberships pro, membership, payment, multibanco
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Requires Plugins: paid-memberships-pro
@@ -79,6 +79,9 @@ After starting checkout, the member is redirected off-site to a secure ifthenpay
 The order is marked Failed or Cancelled once ifthenpay's callback reports the outcome, and the member is shown a message inviting them to try again.
 
 == Changelog ==
+
+= 1.0.1 =
+* "Request Activation" on a not-yet-provisioned payment method now emails ifthenpay's support team directly instead of opening a mailto: link, and is disabled for 24 hours per method after being requested.
 
 = 1.0.0 =
 * Initial release: ifthenpay Pay-By-Link gateway for Paid Memberships Pro.

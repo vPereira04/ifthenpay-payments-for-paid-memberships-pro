@@ -36,6 +36,14 @@ final class SettingsRepository {
 	const AVAILABLE_METHODS_TRANSIENT = 'pmpro_ifthenpay_available_methods';
 
 	/**
+	 * Prefix for the per Gateway-Key/method "activation requested" transient
+	 * (see is_activation_requested()/mark_activation_requested()). Keyed
+	 * dynamically per gateway_key+entity, unlike the other transients above,
+	 * so it can't be a single constant name.
+	 */
+	const ACTIVATION_REQUESTED_TRANSIENT_PREFIX = 'pmpro_ifthenpay_activation_requested_';
+
+	/**
 	 * Per-request memoization so multiple calls within the same request
 	 * (rendering the gateway-key dropdown and the methods table off the
 	 * same page load) only hit the live ifthenpay API once each.
@@ -132,6 +140,46 @@ final class SettingsRepository {
 				return ! empty( $method['is_active'] );
 			}
 		);
+	}
+
+	/**
+	 * Whether a "Request Activation" email was already sent for this
+	 * Gateway Key/method within the last 24 hours -- used to disable the
+	 * button client-side (see MethodsField::render_methods_table()) and to
+	 * reject a duplicate send server-side (see Ajax\Controller::request_activation()).
+	 *
+	 * @param string $gateway_key
+	 * @param string $entity
+	 *
+	 * @return bool
+	 */
+	public function is_activation_requested( $gateway_key, $entity ) {
+		return (bool) get_transient( self::activation_requested_transient_key( $gateway_key, $entity ) );
+	}
+
+	/**
+	 * Starts the 24-hour cooldown for a Gateway Key/method pair once its
+	 * activation email has been sent.
+	 *
+	 * @param string $gateway_key
+	 * @param string $entity
+	 */
+	public function mark_activation_requested( $gateway_key, $entity ) {
+		set_transient( self::activation_requested_transient_key( $gateway_key, $entity ), true, DAY_IN_SECONDS );
+	}
+
+	/**
+	 * The transient key is hashed (rather than a plain concatenation) so it
+	 * stays within the options table's key-length limit regardless of how
+	 * long the Gateway Key happens to be.
+	 *
+	 * @param string $gateway_key
+	 * @param string $entity
+	 *
+	 * @return string
+	 */
+	private static function activation_requested_transient_key( $gateway_key, $entity ) {
+		return self::ACTIVATION_REQUESTED_TRANSIENT_PREFIX . md5( $gateway_key . '|' . strtoupper( $entity ) );
 	}
 
 	/**

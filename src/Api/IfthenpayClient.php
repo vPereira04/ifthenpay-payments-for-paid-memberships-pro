@@ -31,7 +31,7 @@ final class IfthenpayClient {
 
 	const API_BASE = 'https://api.ifthenpay.com';
 
-	const GATEWAY_TYPE = 'PaidMembershipsPro';
+	const GATEWAY_TYPE = 'paidmembershipspro';
 
 	/**
 	 * The Backoffice key this client instance is scoped to.

@@ -10,35 +10,146 @@
  * state, and the Backoffice Key connect/connected status line.
  */
 
-.iftp-pmpro-methods-table .iftp-pmpro-method-row__method {
-	display: flex;
-	align-items: center;
-	gap: 10px;
+/*
+ * Both columns only ever hold a single checkbox/star, so they are shrunk to
+ * fit their content (rather than sharing the table's width evenly with
+ * "Method"/"Account") and sit right next to each other -- leaving the extra
+ * room to the columns that actually need it.
+ */
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__enabled,
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__default {
+	width: 1%;
+	white-space: nowrap;
+	text-align: center;
+	vertical-align: middle;
 }
 
 /*
- * height fixed, width auto: ifthenpay's method logos are not all the same
- * native aspect ratio (the card-network mark is wider than the square
- * MB/MBWAY marks), so a hardcoded width (as this used to have) stretched
- * some of them out of proportion relative to the others. Fixing only the
- * height keeps every logo visually the same scale without distorting any
- * of them.
+ * Closes off the narrow Enabled/Default-Method control columns from the
+ * content columns that follow -- without it the two shrunk-to-fit columns
+ * above visually blur into "Method" instead of reading as their own group.
  */
-.iftp-pmpro-methods-table .iftp-pmpro-method-row__logo {
-	height: 24px;
-	width: auto;
-	border-radius: 2px;
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__enabled {
+	border-right: 1px solid #dcdcde;
 }
 
-.iftp-pmpro-methods-table .iftp-pmpro-method-row--disabled {
-	opacity: 0.6;
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__method,
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__account {
+	text-align: left;
+	vertical-align: middle;
+}
+
+.iftp-pmpro-method-row__method-inner {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+/*
+ * A fixed-width slot for the logo, rather than sizing to each image, so
+ * every row's method name starts at the same x position no matter how
+ * differently shaped its logo is, and the logo itself sits centered in
+ * that slot instead of hugging its own left edge.
+ */
+.iftp-pmpro-method-row__logo-wrap {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 66px;
+	flex-shrink: 0;
+}
+
+/*
+ * height fixed, width capped: ifthenpay's method logos are not all the same
+ * native aspect ratio -- the combined card-network mark renders about 3x as
+ * wide as the square MB/MBWAY marks. Capping max-width at that mark's own
+ * previous rendered width (3 x the old 22px height) means raising
+ * max-height only enlarges the narrower logos; the card mark hits its width
+ * cap first and keeps rendering at essentially its old size.
+ */
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__logo {
+	max-height: 25px;
+	max-width: 66px;
+}
+
+.iftp-pmpro-method-row__account-pill {
+	display: inline-block;
+	height: 24px;
+	line-height: 24px;
+	padding: 0 8px;
+	vertical-align: middle;
+}
+
+.iftp-pmpro-star-label {
+	display: inline-flex;
+	cursor: pointer;
+	color: #a7aaad;
+}
+
+.iftp-pmpro-star-label .dashicons-star-filled {
+	color: #ffb900;
+}
+
+/*
+ * The star only appears once its row's "Enabled" checkbox is checked --
+ * `visibility: hidden` (rather than `display: none`) keeps the column's
+ * width steady as rows are toggled on/off.
+ */
+.iftp-pmpro-star-label--hidden {
+	visibility: hidden;
+}
+
+/*
+ * A quick, playful "wink" whenever a star is toggled -- assets/js/admin.js
+ * re-triggers this by adding/removing the class, since a CSS-only
+ * `:checked` animation can't replay on repeated clicks of the same state.
+ */
+@keyframes iftp-pmpro-star-wink {
+	0% {
+		transform: scale( 1 ) rotate( 0deg );
+	}
+
+	35% {
+		transform: scale( 1.35 ) rotate( -15deg );
+	}
+
+	65% {
+		transform: scale( 0.9 ) rotate( 10deg );
+	}
+
+	100% {
+		transform: scale( 1 ) rotate( 0deg );
+	}
+}
+
+.iftp-pmpro-star-label--wink .dashicons {
+	display: inline-block;
+	animation: iftp-pmpro-star-wink 0.4s ease-in-out;
+}
+
+/*
+ * Opacity is applied to the individual "disabled-looking" elements rather
+ * than the whole row so the "Request Activation" button -- a call to
+ * action, not a disabled control -- stays at full opacity instead of
+ * inheriting a dimmed, washed-out look from its unprovisioned row.
+ */
+.iftp-pmpro-methods-table .iftp-pmpro-method-row--disabled input[type="checkbox"],
+.iftp-pmpro-methods-table .iftp-pmpro-method-row--disabled .iftp-pmpro-method-row__method,
+.iftp-pmpro-methods-table .iftp-pmpro-method-row--disabled .iftp-pmpro-method-row__status {
+	opacity: 0.5;
+}
+
+.iftp-pmpro-methods-table .iftp-pmpro-method-row__activation {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: nowrap;
 }
 
 .iftp-pmpro-methods-table .iftp-pmpro-method-row__status {
-	display: inline-block;
-	margin-right: 8px;
 	font-style: italic;
 	color: #646970;
+	white-space: nowrap;
 }
 
 .iftp-pmpro-backoffice-connect,

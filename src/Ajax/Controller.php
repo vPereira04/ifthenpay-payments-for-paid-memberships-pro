@@ -15,6 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 use Ifthenpay\PaidMembershipsPro\Admin\MethodsField;
 use Ifthenpay\PaidMembershipsPro\Api\IfthenpayClient;
+use Ifthenpay\PaidMembershipsPro\Mail\IfthenpayEmailHelper;
 use Ifthenpay\PaidMembershipsPro\Settings\SettingsRepository;
 use RuntimeException;
 
@@ -43,6 +44,7 @@ final class Controller {
 		add_action( 'wp_ajax_ifthenpay_pmpro_connect_backoffice', array( $this, 'connect_backoffice' ) );
 		add_action( 'wp_ajax_ifthenpay_pmpro_disconnect_backoffice', array( $this, 'disconnect_backoffice' ) );
 		add_action( 'wp_ajax_ifthenpay_pmpro_select_gateway_key', array( $this, 'select_gateway_key' ) );
+		add_action( 'wp_ajax_ifthenpay_pmpro_request_activation', array( $this, 'request_activation' ) );
 	}
 
 	/**
@@ -142,6 +144,59 @@ final class Controller {
 		$settings->save_gateway_key( $gateway_key );
 
 		wp_send_json_success( ( new MethodsField( $settings ) )->render_methods_section( $gateway_key, true ) );
+	}
+
+	/**
+	 * Emails ifthenpay's support team asking them to provision a not-yet-
+	 * activated method for the merchant's Gateway Key, via
+	 * IfthenpayEmailHelper -- the "Request Activation" button's whole point
+	 * is to skip the merchant having to compose that email themselves.
+	 *
+	 * @since 1.0.0
+	 */
+	public function request_activation() {
+		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
+		$this->require_manage_options();
+
+		$settings    = new SettingsRepository();
+		$gateway_key = $settings->get_gateway_key();
+		$entity      = isset( $_POST['entity'] ) ? sanitize_text_field( wp_unslash( $_POST['entity'] ) ) : '';
+
+		if ( '' === $gateway_key || '' === $entity ) {
+			wp_send_json_error( array( 'message' => __( 'Missing Gateway Key or payment method.', 'ifthenpay-payments-for-paid-memberships-pro' ) ) );
+
+			return;
+		}
+
+		if ( $settings->is_activation_requested( $gateway_key, $entity ) ) {
+			wp_send_json_error( array( 'message' => __( 'Activation for this method was already requested. Please wait 24 hours before requesting again.', 'ifthenpay-payments-for-paid-memberships-pro' ) ) );
+
+			return;
+		}
+
+		$sent = IfthenpayEmailHelper::send_activation_email(
+			array(
+				'gateway_key'    => $gateway_key,
+				'entity'         => $entity,
+				'backoffice_key' => $settings->get_backoffice_key(),
+				'customer_email' => get_option( 'admin_email' ),
+				'site_url'       => home_url( '/' ),
+				'site_name'      => get_bloginfo( 'name' ),
+				'wp_version'     => get_bloginfo( 'version' ),
+				'pmpro_version'  => defined( 'PMPRO_VERSION' ) ? PMPRO_VERSION : '',
+				'plugin_version' => defined( 'IFTP_PMPRO_VERSION' ) ? IFTP_PMPRO_VERSION : '',
+			)
+		);
+
+		if ( ! $sent ) {
+			wp_send_json_error( array( 'message' => __( 'Could not send the activation request. Please try again.', 'ifthenpay-payments-for-paid-memberships-pro' ) ) );
+
+			return;
+		}
+
+		$settings->mark_activation_requested( $gateway_key, $entity );
+
+		wp_send_json_success();
 	}
 
 	/**

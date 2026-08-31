@@ -1,0 +1,246 @@
+# Copyright (C) 2026 ifthenpay-payments-for-paid-memberships-pro
+# This file is distributed under the same license as the ifthenpay-payments-for-paid-memberships-pro package.
+msgid ""
+msgstr ""
+"Project-Id-Version: ifthenpay-payments-for-paid-memberships-pro 1.0.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ifthenpay-payments-for-paid-memberships-pro\n"
+"POT-Creation-Date: 2026-08-31 09:50:03+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: classes/class-pmprogateway-ifthenpay.php:156
+msgid "ifthenpay"
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:205
+msgid "Accept Multibanco, MB WAY, Payshop, Credit Card, Apple Pay, Google Pay, Cofidis and Pix via ifthenpay Pay by Link. Members are redirected to a secure ifthenpay-hosted page; ifthenpay confirms payment back to your site automatically, including for offline/async methods."
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:261
+msgid "Pay with ifthenpay"
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:265
+msgid "After submitting, you will be redirected to a secure ifthenpay page to complete your payment."
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:269
+msgid "Enabled Payment Methods"
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:297
+msgid "Settings"
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:446
+msgid "ifthenpay is not configured yet. Please contact the site owner."
+msgstr ""
+
+#. translators: %s: error message returned by the ifthenpay API.
+
+#: classes/class-pmprogateway-ifthenpay.php:473
+msgid "Unable to start the ifthenpay payment: %s"
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:484
+msgid "ifthenpay did not return a payment URL. Please try again."
+msgstr ""
+
+#. translators: %s: ifthenpay hosted payment page URL.
+
+#: classes/class-pmprogateway-ifthenpay.php:493
+msgid "ifthenpay Payment Url: %s"
+msgstr ""
+
+#. translators: %s: ifthenpay request ID, needed for any future refund.
+
+#: classes/class-pmprogateway-ifthenpay.php:583
+msgid "ifthenpay Request ID (for refunds): %s"
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:674
+msgid "Your ifthenpay payment was cancelled. You can try again below."
+msgstr ""
+
+#: classes/class-pmprogateway-ifthenpay.php:675
+msgid "Your ifthenpay payment could not be completed. You can try again below."
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:91
+msgid "Connecting…"
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:92 src/Ajax/Controller.php:69
+msgid "This Backoffice Key could not be validated. Please check it and try again."
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:93
+msgid "Disconnect this ifthenpay Backoffice Key?"
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:94
+msgid "Requesting…"
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:95 src/Admin/MethodsField.php:346
+msgid "Requested"
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:96
+msgid "Activation request sent. You can request this method again in 24 hours."
+msgstr ""
+
+#: ifthenpay-payments-for-paid-memberships-pro.php:97 src/Ajax/Controller.php:192
+msgid "Could not send the activation request. Please try again."
+msgstr ""
+
+#: src/Admin/MethodsField.php:82 src/Admin/MethodsField.php:164
+msgid "Backoffice Key"
+msgstr ""
+
+#: src/Admin/MethodsField.php:86
+msgid "Your ifthenpay Backoffice Key. Everything below requires a valid Backoffice Key."
+msgstr ""
+
+#: src/Admin/MethodsField.php:92
+msgid "Connect your Backoffice Key above to load your Gateway Keys and payment methods."
+msgstr ""
+
+#: src/Admin/MethodsField.php:98
+msgid "Gateway Key"
+msgstr ""
+
+#: src/Admin/MethodsField.php:104
+msgid "The ifthenpay Gateway Key provisioned for this site."
+msgstr ""
+
+#: src/Admin/MethodsField.php:109
+msgid "Payment Methods"
+msgstr ""
+
+#: src/Admin/MethodsField.php:117
+msgid "Payment Description"
+msgstr ""
+
+#: src/Admin/MethodsField.php:120
+msgid "Membership Payment - %s"
+msgstr ""
+
+#. translators: %s: site name.
+
+#: src/Admin/MethodsField.php:121
+msgid "Shown to the member on the ifthenpay hosted payment page. Use {id} as a placeholder for the order code."
+msgstr ""
+
+#: src/Admin/MethodsField.php:126
+msgid "Expiry Days"
+msgstr ""
+
+#: src/Admin/MethodsField.php:130
+msgid "Days before an unpaid ifthenpay payment link expires. 0 disables expiry."
+msgstr ""
+
+#: src/Admin/MethodsField.php:165
+msgid "Connect"
+msgstr ""
+
+#: src/Admin/MethodsField.php:172
+msgid "Backoffice Key connected."
+msgstr ""
+
+#: src/Admin/MethodsField.php:173
+msgid "Disconnect"
+msgstr ""
+
+#: src/Admin/MethodsField.php:193 src/Settings/SettingsRepository.php:464
+msgid "-- No gateway keys found --"
+msgstr ""
+
+#: src/Admin/MethodsField.php:258
+msgid "No payment methods found for this Gateway Key."
+msgstr ""
+
+#: src/Admin/MethodsField.php:266
+msgid "Enabled"
+msgstr ""
+
+#: src/Admin/MethodsField.php:267
+msgid "Default Method"
+msgstr ""
+
+#: src/Admin/MethodsField.php:268
+msgid "Method"
+msgstr ""
+
+#: src/Admin/MethodsField.php:269
+msgid "Account"
+msgstr ""
+
+#: src/Admin/MethodsField.php:316
+msgid "Set as default payment method"
+msgstr ""
+
+#: src/Admin/MethodsField.php:319
+msgid "Default payment method"
+msgstr ""
+
+#: src/Admin/MethodsField.php:338
+msgid "Not activated in Backoffice"
+msgstr ""
+
+#: src/Admin/MethodsField.php:346
+msgid "Request Activation"
+msgstr ""
+
+#: src/Admin/MethodsField.php:355
+msgid "Click the star next to an enabled method to make it the default, pre-selected on the ifthenpay hosted payment page."
+msgstr ""
+
+#: src/Ajax/Controller.php:63
+msgid "Please enter a Backoffice Key."
+msgstr ""
+
+#: src/Ajax/Controller.php:138
+msgid "Connect a Backoffice Key first."
+msgstr ""
+
+#: src/Ajax/Controller.php:166
+msgid "Missing Gateway Key or payment method."
+msgstr ""
+
+#: src/Ajax/Controller.php:172
+msgid "Activation for this method was already requested. Please wait 24 hours before requesting again."
+msgstr ""
+
+#: src/Ajax/Controller.php:207
+msgid "You are not allowed to do this."
+msgstr ""
+
+#: src/Settings/SettingsRepository.php:198
+msgid "Membership Payment #{id}"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "ifthenpay | Payments for Paid Memberships Pro"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "https://ifthenpay.com"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid "Adds ifthenpay as a payment gateway for Paid Memberships Pro: Multibanco, MB WAY, Payshop, Credit Card, Apple Pay, Google Pay and more via Pay by Link."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "ifthenpay"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "https://ifthenpay.com/"
+msgstr ""
+

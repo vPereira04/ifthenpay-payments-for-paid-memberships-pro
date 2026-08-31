@@ -21,16 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'IFTP_PMPRO_VERSION', '1.0.0' );
+define( 'IFTP_PMPRO_VERSION', '1.0.1' );
 define( 'IFTP_PMPRO_FILE', __FILE__ );
 define( 'IFTP_PMPRO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'IFTP_PMPRO_URL', plugin_dir_url( __FILE__ ) );
 
-// PSR-4 autoloader: Ifthenpay\PaidMembershipsPro\ => src/.
-// A hand-rolled autoloader (rather than requiring vendor/autoload.php) is
-// used deliberately so the plugin works from a plain zip/SVN checkout with
-// no composer install step, matching ifthenpay-payments-for-givewp's
-// bootstrap for the same reason.
+// Hand-rolled PSR-4 autoloader (Ifthenpay\PaidMembershipsPro\ => src/) so the
+// plugin works from a plain zip/SVN checkout with no composer install step.
 spl_autoload_register(
 	static function ( $class_name ) {
 		$prefix = 'Ifthenpay\\PaidMembershipsPro\\';
@@ -48,26 +45,20 @@ spl_autoload_register(
 /**
  * Boots the plugin once Paid Memberships Pro core is confirmed active.
  *
- * Hooked at priority 20 (PMPro core registers its own `PMProGateway` base
- * class from its main file at the default `plugins_loaded`-adjacent load
- * time -- i.e. simply by being included -- so by the time any
- * `plugins_loaded` callback runs, PMPro is already fully loaded regardless
- * of plugin activation order; priority 20 plus the `Requires Plugins`
- * header above are both belt-and-suspenders here, not strictly required).
+ * Priority 20 is belt-and-suspenders: PMPro core's `PMProGateway` base class
+ * is already loaded by the time any `plugins_loaded` callback runs.
  *
  * @since 1.0.0
  */
 function ifthenpay_pmpro_boot() {
 	if ( ! class_exists( 'PMProGateway' ) ) {
-		// Paid Memberships Pro is not active. Nothing to register.
 		return;
 	}
 
 	require_once IFTP_PMPRO_DIR . 'classes/class-pmprogateway-ifthenpay.php';
 
-	// admin-ajax.php requests are is_admin() === true, so this also covers
-	// the Ajax\Controller endpoints themselves, not just the settings screen
-	// that calls them.
+	// admin-ajax.php requests are is_admin() === true too, so this also
+	// covers the Ajax\Controller endpoints themselves.
 	if ( is_admin() ) {
 		( new \Ifthenpay\PaidMembershipsPro\Ajax\Controller() )->hooks();
 	}
@@ -97,12 +88,30 @@ function ifthenpay_pmpro_admin_assets() {
 			'ajax_url' => admin_url( 'admin-ajax.php' ),
 			'nonce'    => wp_create_nonce( \Ifthenpay\PaidMembershipsPro\Ajax\Controller::NONCE_ACTION ),
 			'i18n'     => array(
-				'connecting'        => __( 'Connecting…', 'ifthenpay-payments-for-paid-memberships-pro' ),
-				'invalidKey'        => __( 'This Backoffice Key could not be validated. Please check it and try again.', 'ifthenpay-payments-for-paid-memberships-pro' ),
-				'confirmDisconnect' => __( 'Disconnect this ifthenpay Backoffice Key?', 'ifthenpay-payments-for-paid-memberships-pro' ),
-				'noDefault'         => __( '-- No default, let the member choose --', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'connecting'              => __( 'Connecting…', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'invalidKey'              => __( 'This Backoffice Key could not be validated. Please check it and try again.', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'confirmDisconnect'       => __( 'Disconnect this ifthenpay Backoffice Key?', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'requestingActivation'    => __( 'Requesting…', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'activationRequested'     => __( 'Requested', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'activationRequestSent'   => __( 'Activation request sent. You can request this method again in 24 hours.', 'ifthenpay-payments-for-paid-memberships-pro' ),
+				'activationRequestFailed' => __( 'Could not send the activation request. Please try again.', 'ifthenpay-payments-for-paid-memberships-pro' ),
 			),
 		)
 	);
 }
 add_action( 'admin_enqueue_scripts', 'ifthenpay_pmpro_admin_assets' );
+
+/**
+ * Enqueues the small additive checkout stylesheet only on PMPro's checkout
+ * page, never site-wide.
+ *
+ * @since 1.0.0
+ */
+function ifthenpay_pmpro_checkout_assets() {
+	if ( ! function_exists( 'pmpro_is_checkout' ) || ! pmpro_is_checkout() ) {
+		return;
+	}
+
+	wp_enqueue_style( 'ifthenpay-pmpro-checkout', IFTP_PMPRO_URL . 'assets/css/checkout.css', array(), IFTP_PMPRO_VERSION );
+}
+add_action( 'wp_enqueue_scripts', 'ifthenpay_pmpro_checkout_assets' );

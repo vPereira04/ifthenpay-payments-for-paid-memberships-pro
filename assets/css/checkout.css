@@ -1,0 +1,30 @@
+/**
+ * Minimal, additive styles for the ifthenpay checkout instructions box
+ * (classes/class-pmprogateway-ifthenpay.php::pmpro_checkout_after_payment_information_fields()).
+ * Reuses PMPro's own .pmpro_form_field spacing; only the enabled-methods
+ * icon strip needs rules of its own.
+ */
+
+.iftp-pmpro-checkout-methods__label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.iftp-pmpro-checkout-methods__icons {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+}
+
+/*
+ * height fixed, width auto: ifthenpay's method logos are not all the same
+ * native aspect ratio, so fixing only the height keeps every logo visually
+ * the same scale without distorting any of them (matches the admin
+ * payment-methods table's own .iftp-pmpro-method-row__logo rule).
+ */
+.iftp-pmpro-checkout-methods__icon {
+	max-height: 24px;
+	max-width: 90px;
+}

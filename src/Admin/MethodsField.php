@@ -5,7 +5,7 @@
  * `ifthenpay_pmpro_*` AJAX endpoints (Ajax\Controller) swap into that screen
  * so connecting/disconnecting the Backoffice Key and switching the Gateway
  * Key update the page live -- no Save-and-reload round trip needed to see
- * the payment methods table or the Default Payment Method options.
+ * the payment methods table or its Default Method star column update.
  *
  * @package Ifthenpay\PaidMembershipsPro
  */
@@ -17,26 +17,26 @@ defined( 'ABSPATH' ) || exit;
 use Ifthenpay\PaidMembershipsPro\Settings\SettingsRepository;
 
 /**
- * Renders the six-field ifthenpay settings contract (Backoffice Key,
- * Gateway Key, methods table, default method, description, expiry days) as
- * `<tr>` rows inside the `<table class="form-table">` that
- * `adminpages/paymentsettings.php` wraps around
- * `PMProGateway_ifthenpay::show_settings_fields()`.
+ * Renders the five-field ifthenpay settings contract (Backoffice Key,
+ * Gateway Key, methods table -- which also carries the default method as a
+ * per-row star toggle --, description, expiry days) as `<tr>` rows inside
+ * the `<table class="form-table">` that `adminpages/paymentsettings.php`
+ * wraps around `PMProGateway_ifthenpay::show_settings_fields()`.
  *
  * Reuses Paid Memberships Pro's own markup/CSS: `.form-table`, the
  * `.wp-list-table.widefat.striped` table used for the gateway list on the
  * main Payment Settings screen, and `.pmpro_message`/`.description` helper
  * classes -- no new visual vocabulary is introduced, only a handful of
- * `iftp-pmpro-*` classes for the parts (per-method row state, connect/
- * disconnect status, activate button) that PMPro's own markup has no
- * equivalent for.
+ * `iftp-pmpro-*` classes for the parts (per-method row state, default-method
+ * star, connect/disconnect status, activate button) that PMPro's own markup
+ * has no equivalent for.
  *
- * The Gateway Key row, Payment Methods row and Default Payment Method row
- * all carry the `iftp-pmpro-connected-row` class and are hidden inline
- * until a Backoffice Key is connected; assets/js/admin.js reveals them (and
- * replaces their contents) after a successful AJAX connect, with no page
- * reload. The Backoffice Key's own raw value is never rendered into this
- * screen once saved -- see render_backoffice_status().
+ * The Gateway Key row and Payment Methods row both carry the
+ * `iftp-pmpro-connected-row` class and are hidden inline until a Backoffice
+ * Key is connected; assets/js/admin.js reveals them (and replaces their
+ * contents) after a successful AJAX connect, with no page reload. The
+ * Backoffice Key's own raw value is never rendered into this screen once
+ * saved -- see render_backoffice_status().
  *
  * @since 1.0.0
  */
@@ -110,17 +110,6 @@ final class MethodsField {
 			</th>
 			<td>
 				<div id="iftp-pmpro-methods-table-wrap"><?php echo $methods_section['table_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped internally ?></div>
-			</td>
-		</tr>
-		<tr class="gateway gateway_ifthenpay iftp-pmpro-connected-row"<?php echo $is_connected ? '' : $hidden_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $hidden_attr is a hardcoded literal, not user data ?>>
-			<th scope="row" valign="top">
-				<label for="pmpro_ifthenpay_default_method"><?php esc_html_e( 'Default Payment Method', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></label>
-			</th>
-			<td>
-				<select id="pmpro_ifthenpay_default_method" name="pmpro_ifthenpay_default_method">
-					<?php echo $methods_section['default_html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped internally ?>
-				</select>
-				<p class="description"><?php esc_html_e( 'Pre-selected on the ifthenpay hosted payment page. Only methods enabled above are offered.', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></p>
 			</td>
 		</tr>
 		<tr class="gateway gateway_ifthenpay">
@@ -218,17 +207,16 @@ final class MethodsField {
 	}
 
 	/**
-	 * Builds the payment-methods table and Default Payment Method options
-	 * for a given Gateway Key. The single entry point both render() and
-	 * every AJAX endpoint that needs to refresh these two pieces together
+	 * Builds the payment-methods table (default method included, as each
+	 * row's star) for a given Gateway Key. The single entry point both
+	 * render() and every AJAX endpoint that needs to refresh it
 	 * (Ajax\Controller::connect_backoffice(), ::disconnect_backoffice(),
-	 * ::select_gateway_key()) call, so they can never drift out of sync with
-	 * each other.
+	 * ::select_gateway_key()) call.
 	 *
 	 * @param string $gateway_key The Gateway Key to build rows for.
 	 * @param bool   $force       Bypass the transient cache and hit the live ifthenpay API.
 	 *
-	 * @return array{table_html:string,default_html:string}
+	 * @return array{table_html:string}
 	 *
 	 * @since 1.0.0
 	 */
@@ -237,8 +225,7 @@ final class MethodsField {
 		$saved_methods = $this->settings->get_methods();
 
 		return array(
-			'table_html'   => $this->render_methods_table( $rows, $saved_methods, $gateway_key ),
-			'default_html' => $this->render_default_method_options( $rows, $saved_methods, $this->settings->get_default_method() ),
+			'table_html' => $this->render_methods_table( $rows, $saved_methods, $gateway_key, $this->settings->get_default_method() ),
 		);
 	}
 
@@ -250,17 +237,23 @@ final class MethodsField {
 	 * already uses for the top-level gateway list.
 	 *
 	 * Each checkbox carries `data-iftp-pmpro-entity`/`data-iftp-pmpro-label`
-	 * so assets/js/admin.js can rebuild the Default Payment Method
-	 * `<select>`'s options the instant a checkbox is (un)checked, entirely
-	 * client-side -- no AJAX round trip, no need to click Save first.
+	 * so assets/js/admin.js can keep the Default Method star column in sync
+	 * the instant a checkbox is (un)checked, entirely client-side -- no AJAX
+	 * round trip, no need to click Save first. The stars themselves are a
+	 * single `pmpro_ifthenpay_default_method` radio group (one `<input
+	 * type="radio">` per method, value = its entity code) -- the browser
+	 * enforces at most one default and, unlike a checkbox, a click on the
+	 * already-selected star cannot clear it back to "none"; the merchant
+	 * always has to actively pick a different one to change it.
 	 *
-	 * @param array<int, array<string, mixed>>    $rows          Rows built by SettingsRepository::build_method_rows().
-	 * @param array<string, array<string, mixed>> $saved_methods The merchant's currently saved methods state.
-	 * @param string                              $gateway_key   The currently selected Gateway Key.
+	 * @param array<int, array<string, mixed>>    $rows            Rows built by SettingsRepository::build_method_rows().
+	 * @param array<string, array<string, mixed>> $saved_methods   The merchant's currently saved methods state.
+	 * @param string                              $gateway_key     The currently selected Gateway Key.
+	 * @param string                              $current_default The currently saved default-method entity.
 	 *
 	 * @return string
 	 */
-	private function render_methods_table( array $rows, array $saved_methods, $gateway_key ) {
+	private function render_methods_table( array $rows, array $saved_methods, $gateway_key, $current_default ) {
 		if ( empty( $rows ) ) {
 			return '<p class="description">' . esc_html__( 'No payment methods found for this Gateway Key.', 'ifthenpay-payments-for-paid-memberships-pro' ) . '</p>';
 		}
@@ -270,21 +263,24 @@ final class MethodsField {
 		<table class="wp-list-table widefat striped iftp-pmpro-methods-table">
 			<thead>
 				<tr>
-					<th class="manage-column" scope="col"><?php esc_html_e( 'Enabled', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
-					<th class="manage-column" scope="col"><?php esc_html_e( 'Method', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
-					<th class="manage-column" scope="col"><?php esc_html_e( 'Account', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
+					<th class="manage-column iftp-pmpro-method-row__enabled" scope="col"><?php esc_html_e( 'Enabled', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
+					<th class="manage-column iftp-pmpro-method-row__default" scope="col"><?php esc_html_e( 'Default Method', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
+					<th class="manage-column iftp-pmpro-method-row__method" scope="col"><?php esc_html_e( 'Method', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
+					<th class="manage-column iftp-pmpro-method-row__account" scope="col"><?php esc_html_e( 'Account', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php foreach ( $rows as $row ) : ?>
 					<?php
-					$entity         = $row['entity'];
-					$is_provisioned = '' !== $row['account'];
-					$is_active      = $is_provisioned && ! empty( $saved_methods[ $entity ]['is_active'] );
-					$field_name     = sprintf( 'pmpro_ifthenpay_methods[%s]', $entity );
+					$entity               = $row['entity'];
+					$is_provisioned       = '' !== $row['account'];
+					$is_active            = $is_provisioned && ! empty( $saved_methods[ $entity ]['is_active'] );
+					$is_default           = $is_active && strtoupper( $entity ) === strtoupper( $current_default );
+					$field_name           = sprintf( 'pmpro_ifthenpay_methods[%s]', $entity );
+					$activation_requested = ! $is_provisioned && $this->settings->is_activation_requested( $gateway_key, $entity );
 					?>
 					<tr class="iftp-pmpro-method-row<?php echo $is_provisioned ? '' : ' iftp-pmpro-method-row--disabled'; ?>">
-						<td>
+						<td class="iftp-pmpro-method-row__enabled">
 							<input type="hidden" name="<?php echo esc_attr( $field_name ); ?>[label]" value="<?php echo esc_attr( $row['label'] ); ?>" />
 							<input type="hidden" name="<?php echo esc_attr( $field_name ); ?>[account]" value="<?php echo esc_attr( $row['account'] ); ?>" />
 							<input type="hidden" name="<?php echo esc_attr( $field_name ); ?>[position]" value="<?php echo esc_attr( (string) $row['position'] ); ?>" />
@@ -301,61 +297,64 @@ final class MethodsField {
 								<?php disabled( ! $is_provisioned ); ?>
 							/>
 						</td>
-						<td class="iftp-pmpro-method-row__method">
-							<?php if ( '' !== $row['img_url'] ) : ?>
-								<img src="<?php echo esc_url( $row['img_url'] ); ?>" alt="" class="iftp-pmpro-method-row__logo" />
-							<?php endif; ?>
-							<span><?php echo esc_html( $row['label'] ); ?></span>
-						</td>
-						<td>
+						<td class="iftp-pmpro-method-row__default">
 							<?php if ( $is_provisioned ) : ?>
-								<code><?php echo esc_html( $row['account'] ); ?></code>
+								<input
+									type="radio"
+									id="iftp-pmpro-star-<?php echo esc_attr( $entity ); ?>"
+									class="iftp-pmpro-star-input screen-reader-text"
+									name="pmpro_ifthenpay_default_method"
+									value="<?php echo esc_attr( $entity ); ?>"
+									data-iftp-pmpro-star
+									data-iftp-pmpro-entity="<?php echo esc_attr( $entity ); ?>"
+									<?php checked( $is_default ); ?>
+									<?php disabled( ! $is_active ); ?>
+								/>
+								<label
+									for="iftp-pmpro-star-<?php echo esc_attr( $entity ); ?>"
+									class="iftp-pmpro-star-label<?php echo $is_active ? '' : ' iftp-pmpro-star-label--hidden'; ?>"
+									title="<?php esc_attr_e( 'Set as default payment method', 'ifthenpay-payments-for-paid-memberships-pro' ); ?>"
+								>
+									<span class="dashicons <?php echo $is_default ? 'dashicons-star-filled' : 'dashicons-star-empty'; ?>" aria-hidden="true"></span>
+									<span class="screen-reader-text"><?php esc_html_e( 'Default payment method', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></span>
+								</label>
+							<?php endif; ?>
+						</td>
+						<td class="iftp-pmpro-method-row__method">
+							<div class="iftp-pmpro-method-row__method-inner">
+								<span class="iftp-pmpro-method-row__logo-wrap">
+									<?php if ( '' !== $row['img_url'] ) : ?>
+										<img src="<?php echo esc_url( $row['img_url'] ); ?>" alt="" class="iftp-pmpro-method-row__logo" />
+									<?php endif; ?>
+								</span>
+								<span class="iftp-pmpro-method-row__label"><?php echo esc_html( $row['label'] ); ?></span>
+							</div>
+						</td>
+						<td class="iftp-pmpro-method-row__account">
+							<?php if ( $is_provisioned ) : ?>
+								<code class="iftp-pmpro-method-row__account-pill"><?php echo esc_html( $row['account'] ); ?></code>
 							<?php else : ?>
-								<span class="iftp-pmpro-method-row__status"><?php esc_html_e( 'Not activated in Backoffice', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></span>
-								<a class="button button-secondary button-small" target="_blank" rel="noopener noreferrer" href="<?php echo esc_url( 'mailto:suporte@ifthenpay.com?subject=' . rawurlencode( sprintf( 'Activate %s for Gateway Key %s', $row['label'], $gateway_key ) ) ); ?>">
-									<?php esc_html_e( 'Request Activation', 'ifthenpay-payments-for-paid-memberships-pro' ); ?>
-								</a>
+								<div class="iftp-pmpro-method-row__activation">
+									<span class="iftp-pmpro-method-row__status"><?php esc_html_e( 'Not activated in Backoffice', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></span>
+									<button
+										type="button"
+										class="button button-secondary button-small"
+										data-iftp-pmpro-request-activation
+										data-entity="<?php echo esc_attr( $entity ); ?>"
+										<?php disabled( $activation_requested ); ?>
+									>
+										<?php echo $activation_requested ? esc_html__( 'Requested', 'ifthenpay-payments-for-paid-memberships-pro' ) : esc_html__( 'Request Activation', 'ifthenpay-payments-for-paid-memberships-pro' ); ?>
+									</button>
+								</div>
 							<?php endif; ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>
 			</tbody>
 		</table>
+		<p class="description"><?php esc_html_e( 'Click the star next to an enabled method to make it the default, pre-selected on the ifthenpay hosted payment page.', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></p>
 		<?php
 
 		return (string) ob_get_clean();
-	}
-
-	/**
-	 * Renders the <option> list for the "Default Payment Method" dropdown --
-	 * restricted to methods that are both provisioned and currently enabled.
-	 *
-	 * @param array<int, array<string, mixed>>    $rows            Rows built by SettingsRepository::build_method_rows().
-	 * @param array<string, array<string, mixed>> $saved_methods   The merchant's currently saved methods state.
-	 * @param string                              $current_default The currently saved default-method entity.
-	 *
-	 * @return string
-	 */
-	private function render_default_method_options( array $rows, array $saved_methods, $current_default ) {
-		$options = sprintf(
-			'<option value="">%s</option>',
-			esc_html__( '-- No default, let the member choose --', 'ifthenpay-payments-for-paid-memberships-pro' )
-		);
-
-		foreach ( $rows as $row ) {
-			$entity = $row['entity'];
-			if ( '' === $row['account'] || empty( $saved_methods[ $entity ]['is_active'] ) ) {
-				continue;
-			}
-
-			$options .= sprintf(
-				'<option value="%1$s" %2$s>%3$s</option>',
-				esc_attr( $entity ),
-				selected( $entity, strtoupper( $current_default ), false ),
-				esc_html( $row['label'] )
-			);
-		}
-
-		return $options;
 	}
 }

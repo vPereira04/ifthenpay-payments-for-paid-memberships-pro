@@ -247,6 +247,14 @@ class PMProGateway_ifthenpay extends PMProGateway {
 		if ( 'ifthenpay' !== $gateway || pmpro_isLevelFree( $pmpro_level ) ) {
 			return;
 		}
+
+		$active_methods = ( new SettingsRepository() )->get_active_methods();
+		uasort(
+			$active_methods,
+			static function ( $a, $b ) {
+				return (int) ( $a['position'] ?? 0 ) <=> (int) ( $b['position'] ?? 0 );
+			}
+		);
 		?>
 		<div id="pmpro_payment_information_fields" class="<?php echo esc_attr( pmpro_get_element_class( 'pmpro_form_fieldset', 'pmpro_payment_information_fields' ) ); ?>">
 			<div class="<?php echo esc_attr( pmpro_get_element_class( 'pmpro_card' ) ); ?>">
@@ -254,8 +262,20 @@ class PMProGateway_ifthenpay extends PMProGateway {
 				<div class="<?php echo esc_attr( pmpro_get_element_class( 'pmpro_card_content' ) ); ?>">
 					<div class="<?php echo esc_attr( pmpro_get_element_class( 'pmpro_form_fields' ) ); ?>">
 						<div class="<?php echo esc_attr( pmpro_get_element_class( 'pmpro_form_field pmpro_ifthenpay_instructions' ) ); ?>">
-							<?php esc_html_e( 'After submitting, you will be redirected to a secure ifthenpay page to complete your payment (card, Apple Pay, Google Pay, Multibanco, MB WAY, and more depending on what is enabled).', 'ifthenpay-payments-for-paid-memberships-pro' ); ?>
+							<?php esc_html_e( 'After submitting, you will be redirected to a secure ifthenpay page to complete your payment.', 'ifthenpay-payments-for-paid-memberships-pro' ); ?>
 						</div>
+						<?php if ( ! empty( $active_methods ) ) : ?>
+							<div class="<?php echo esc_attr( pmpro_get_element_class( 'pmpro_form_field' ) ); ?>">
+								<span class="iftp-pmpro-checkout-methods__label"><?php esc_html_e( 'Enabled Payment Methods', 'ifthenpay-payments-for-paid-memberships-pro' ); ?></span>
+								<div class="iftp-pmpro-checkout-methods__icons">
+									<?php foreach ( $active_methods as $method ) : ?>
+										<?php if ( '' !== (string) ( $method['img_url'] ?? '' ) ) : ?>
+											<img src="<?php echo esc_url( (string) $method['img_url'] ); ?>" alt="<?php echo esc_attr( (string) ( $method['label'] ?? '' ) ); ?>" class="iftp-pmpro-checkout-methods__icon" />
+										<?php endif; ?>
+									<?php endforeach; ?>
+								</div>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>

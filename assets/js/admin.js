@@ -1,9 +1,10 @@
 /**
  * Makes the ifthenpay settings screen reactive: connecting/disconnecting the
- * Backoffice Key, switching the Gateway Key, and (un)checking a payment
- * method all update the page immediately, with no Save-and-reload round
- * trip -- see src/Ajax/Controller.php for the endpoints this talks to and
- * src/Admin/MethodsField.php for the markup it replaces.
+ * Backoffice Key, switching the Gateway Key, (un)checking a payment method,
+ * and starring a method as the default all update the page immediately,
+ * with no Save-and-reload round trip -- see src/Ajax/Controller.php for the
+ * endpoints this talks to and src/Admin/MethodsField.php for the markup it
+ * replaces.
  */
 ( function ( $ ) {
 	'use strict';
@@ -37,27 +38,29 @@
 	function applyMethodsSection( section ) {
 		section = section || {};
 		$( '#iftp-pmpro-methods-table-wrap' ).html( section.table_html || '' );
-		$( '#pmpro_ifthenpay_default_method' ).html( section.default_html || '' );
 	}
 
-	// Rebuilds the Default Payment Method <select> from whichever method
-	// checkboxes are currently checked and enabled -- purely client-side,
-	// so toggling a checkbox updates the dropdown instantly instead of
-	// requiring a Save + page refresh to see it change.
-	function rebuildDefaultMethodOptions() {
-		var $select = $( '#pmpro_ifthenpay_default_method' );
-		var current = $select.val();
-		var options = '<option value="">' + ( ( cfg.i18n && cfg.i18n.noDefault ) || '' ) + '</option>';
+	// Swaps a star's icon between filled/empty -- kept as its own function so
+	// both the click handler and the "method got disabled" cleanup below stay
+	// in sync on what a checked/unchecked star actually looks like.
+	function setStarIcon( $star, isDefault ) {
+		$star.next( '.iftp-pmpro-star-label' )
+			.find( '.dashicons' )
+			.toggleClass( 'dashicons-star-filled', isDefault )
+			.toggleClass( 'dashicons-star-empty', ! isDefault );
+	}
 
-		$( '#iftp-pmpro-methods-table-wrap input[data-iftp-pmpro-entity]:checked:not(:disabled)' ).each( function () {
-			var $checkbox = $( this );
-			var entity    = String( $checkbox.data( 'iftpPmproEntity' ) || '' );
-			var label     = String( $checkbox.data( 'iftpPmproLabel' ) || entity );
+	// A quick, playful "wink" whenever a star is toggled -- purely cosmetic,
+	// re-triggered via a class add/remove (a CSS-only :checked animation
+	// can't replay on repeated clicks of the same state).
+	function winkStar( $star ) {
+		var $label = $star.next( '.iftp-pmpro-star-label' );
 
-			options += '<option value="' + entity + '"' + ( entity === current ? ' selected' : '' ) + '>' + label + '</option>';
-		} );
-
-		$select.html( options );
+		$label.removeClass( 'iftp-pmpro-star-label--wink' );
+		// Force reflow so re-adding the class restarts the animation even if
+		// it's already present from a very quick repeated click.
+		void $label[ 0 ].offsetWidth;
+		$label.addClass( 'iftp-pmpro-star-label--wink' );
 	}
 
 	$( document ).on( 'click', '[data-iftp-pmpro-connect-button]', function ( e ) {
@@ -142,6 +145,66 @@
 			} );
 	} );
 
-	// Client-side only -- see rebuildDefaultMethodOptions() above.
-	$( document ).on( 'change', '#iftp-pmpro-methods-table-wrap input[data-iftp-pmpro-entity]', rebuildDefaultMethodOptions );
+	// Starring a method: the stars are a native radio group (shared `name`),
+	// so the browser already enforces a single default and, unlike a
+	// checkbox, a click on the already-selected star is a no-op -- there is
+	// no way to click a star back to "no default", the merchant always has
+	// to pick a different one. This just resyncs every star's icon to its
+	// current checked state and plays the wink on the one just clicked.
+	$( document ).on( 'change', '#iftp-pmpro-methods-table-wrap [data-iftp-pmpro-star]', function () {
+		$( '#iftp-pmpro-methods-table-wrap [data-iftp-pmpro-star]' ).each( function () {
+			setStarIcon( $( this ), $( this ).prop( 'checked' ) );
+		} );
+
+		winkStar( $( this ) );
+	} );
+
+	// A method that just got disabled can no longer be the default: hide and
+	// disable its star live, and clear the default if it was the one set.
+	$( document ).on( 'change', '#iftp-pmpro-methods-table-wrap input[data-iftp-pmpro-entity]', function () {
+		var enabled = $( this ).prop( 'checked' );
+		var $star   = $( this ).closest( 'tr' ).find( '[data-iftp-pmpro-star]' );
+
+		if ( ! $star.length ) {
+			return;
+		}
+
+		$star.prop( 'disabled', ! enabled );
+		$star.next( '.iftp-pmpro-star-label' ).toggleClass( 'iftp-pmpro-star-label--hidden', ! enabled );
+
+		if ( ! enabled && $star.prop( 'checked' ) ) {
+			$star.prop( 'checked', false );
+			setStarIcon( $star, false );
+		}
+	} );
+
+	$( document ).on( 'click', '[data-iftp-pmpro-request-activation]', function () {
+		var $button       = $( this );
+		var entity        = String( $button.data( 'entity' ) || '' );
+		var originalLabel = $button.text();
+
+		$button.prop( 'disabled', true ).text( ( cfg.i18n && cfg.i18n.requestingActivation ) || originalLabel );
+
+		apiPost( 'ifthenpay_pmpro_request_activation', { entity: entity } )
+			.done( function ( response ) {
+				if ( response && response.success ) {
+					// Stays disabled for the 24-hour cooldown Ajax\Controller
+					// just started server-side (Settings\SettingsRepository's
+					// transient) -- only this method's button, every other
+					// still-unprovisioned method's button is untouched.
+					$button.prop( 'disabled', true ).text( ( cfg.i18n && cfg.i18n.activationRequested ) || originalLabel );
+					window.alert( ( cfg.i18n && cfg.i18n.activationRequestSent ) || '' );
+
+					return;
+				}
+
+				var data = ( response && response.data ) || {};
+				window.alert( data.message || ( cfg.i18n && cfg.i18n.activationRequestFailed ) || '' );
+				$button.prop( 'disabled', false ).text( originalLabel );
+			} )
+			.fail( function () {
+				window.alert( ( cfg.i18n && cfg.i18n.activationRequestFailed ) || '' );
+				$button.prop( 'disabled', false ).text( originalLabel );
+			} );
+	} );
 } )( jQuery );
