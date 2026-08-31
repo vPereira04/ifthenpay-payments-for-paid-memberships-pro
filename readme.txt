@@ -78,6 +78,16 @@ After starting checkout, the member is redirected off-site to a secure ifthenpay
 = What happens if a payment fails or is cancelled? =
 The order is marked Failed or Cancelled once ifthenpay's callback reports the outcome, and the member is shown a message inviting them to try again.
 
+== Screenshots ==
+1. Payment Settings — ifthenpay listed among the available payment gateways and enabled as the site's primary gateway.
+2. Edit Payment Gateway: ifthenpay — connecting a Backoffice Key for the first time.
+3. Edit Payment Gateway: ifthenpay — once connected: Gateway Key selector, Payment Methods table with the Default Method star, Payment Description and Expiry Days.
+4. Membership Checkout — the "Pay with ifthenpay" section shown to the member, listing the enabled payment methods.
+5. The secure ifthenpay-hosted payment page the member is redirected to, showing the amount, order reference and available payment methods.
+6. Membership Confirmation — the paid order receipt shown after a successful ifthenpay payment.
+7. Paid Memberships Pro Orders list showing a membership order paid via the ifthenpay gateway.
+8. Order detail screen showing the Payment Gateway Information and the ifthenpay Payment URL / Request ID (for refunds) order notes.
+
 == Changelog ==
 
 = 1.0.1 =
@@ -94,3 +104,16 @@ This plugin connects to the ifthenpay API (https://ifthenpay.com) to create paym
 * What data is sent: your ifthenpay Backoffice Key and Gateway Key, the order code, the amount due, a payment description, and your site's webhook URL. No card or banking details are collected or transmitted by this plugin.
 * When data is sent: when an admin loads or saves the ifthenpay settings screen, and when a member checks out using the ifthenpay gateway.
 * Service provider: ifthenpay (https://ifthenpay.com), see their Terms of Service (https://ifthenpay.com/eula/) and Privacy Policy (https://ifthenpay.com/politica-de-privacidade/).
+
+== Support ==
+
+For assistance use the WordPress.org support forum (https://wordpress.org/support/plugin/ifthenpay-payments-for-paid-memberships-pro):
+
+Pre-checks:
+* Payment method enabled on Gateway Key AND mapped to your Paid Memberships Pro Gateway Key
+* Running current recommended versions of WordPress, PHP, & Paid Memberships Pro
+
+Commercial helpdesk available (no direct email required): https://helpdesk.ifthenpay.com/
+
+* ifthenpay support: suporte@ifthenpay.com
+* Paid Memberships Pro docs: https://www.paidmembershipspro.com/documentation/
