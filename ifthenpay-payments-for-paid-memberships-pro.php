@@ -9,7 +9,7 @@
  * Requires Plugins:  paid-memberships-pro
  * Author:            ifthenpay
  * Author URI:        https://ifthenpay.com/
- * License:           GPL v3
+ * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:       ifthenpay-payments-for-paid-memberships-pro
  * Domain Path:       /languages
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'IFTP_PMPRO_VERSION', '1.0.1' );
+define( 'IFTP_PMPRO_VERSION', '1.0.0' );
 define( 'IFTP_PMPRO_FILE', __FILE__ );
 define( 'IFTP_PMPRO_DIR', plugin_dir_path( __FILE__ ) );
 define( 'IFTP_PMPRO_URL', plugin_dir_url( __FILE__ ) );
